@@ -1,0 +1,10 @@
+name = "CuFluxSampler"
+uuid = "d04bc951-f907-4aa3-859a-fc6f9fe5eea9"
+authors = ["Mirek Kratochvil <miroslav.kratochvil@uni.lu>"]
+version = "0.1.0"
+
+[deps]
+COBREXA = "babc4406-5200-4a30-9033-bf5ae714c842"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"

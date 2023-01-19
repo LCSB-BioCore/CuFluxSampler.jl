@@ -1,15 +1,25 @@
 module AffineHR
-
 using ..CUDA
+using ..DocStringExtensions
 
 import ..COBREXA
-import ..TeaRng
+import ..TeaRNG
 
-function sample(m::MetabolicModel, warmup::Matrix{Float32}, npts::Int, iters::Int)
+"""
+$(TYPEDSIGNATURES)
+
+Use the affine-combination hit-and-run algorithm to generate a sample of the
+feasible area of `m` from the `warmup` points supplied as columns in a matrix.
+If you are generating a sample of the optimal solution, it is expected that the
+optimum bound is already present in `m`.
+
+Returns a matrix of `npts` samples organized in columns.
+"""
+function sample(m::COBREXA.MetabolicModel, warmup::AbstractMatrix, npts::Int, iters::Int)
     epsilon = 1e-5
 
     # allocate everything
-    base_points = cu(warmup)
+    base_points = cu(Matrix{Float32}(warmup))
     ws = CUDA.zeros(size(base_points, 2), npts)
     dirs = CUDA.zeros(size(base_points, 1), npts)
     lblambdas = CUDA.zeros(size(dirs))
@@ -29,13 +39,13 @@ function sample(m::MetabolicModel, warmup::Matrix{Float32}, npts::Int, iters::In
     ubs = cu(ubsc)
 
     # pre-generate first batch of the points
-    @cuda threads = 256 blocks = 32 TeaRng.device_fill_rand!(ws, 0)
+    @cuda threads = 256 blocks = 32 TeaRNG.device_fill_rand!(ws, 0)
     pts = (base_points * ws) ./ sum(ws, dims = 1)
 
     # run the iterations
     @time for iter = 1:iters
         # make random point combinations and convert to directions
-        @cuda threads = 256 blocks = 32 TeaRng.device_fill_rand!(ws, iter * 2)
+        @cuda threads = 256 blocks = 32 TeaRNG.device_fill_rand!(ws, iter * 2)
         dirs .= ((base_points * ws) ./ sum(ws, dims = 1)) .- pts
 
         # unit-size directions
@@ -50,7 +60,7 @@ function sample(m::MetabolicModel, warmup::Matrix{Float32}, npts::Int, iters::In
         lmax .= minimum(ifelse.(isfinite.(lmaxs), lmaxs, Inf32), dims = 1)
 
         # generate random lambdas and compute new points 
-        @cuda threads = 256 blocks = 32 TeaRng.device_fill_rand!(lws, iter * 2 + 1)
+        @cuda threads = 256 blocks = 32 TeaRNG.device_fill_rand!(lws, iter * 2 + 1)
         newpts .= pts + dirs .* (lmin .+ lws .* (lmax .- lmin))
 
         # check if the new points are okay and mask the replacement if not

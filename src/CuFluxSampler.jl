@@ -1,9 +1,11 @@
 module CuFluxSampler
 
-import CUDA
-import SparseArrays
 import COBREXA
+import CUDA
+import DocStringExtensions
+import SparseArrays
 
-include("affinehr.jl")
+include("TeaRNG.jl")
+include("AffineHR.jl")
 
 end # module CuFluxSampler

@@ -16,34 +16,39 @@ optimum bound is already present in `m`.
 Returns a matrix of `npts` samples organized in columns.
 """
 function sample(m::COBREXA.MetabolicModel, warmup::AbstractMatrix, npts::Int, iters::Int)
+    # TODO seed and tea iters
+    # TODO ignore checks using Val{Bool}
     epsilon = 1e-5
 
     # allocate everything
     base_points = cu(Matrix{Float32}(warmup))
     ws = CUDA.zeros(size(base_points, 2), npts)
     dirs = CUDA.zeros(size(base_points, 1), npts)
-    lblambdas = CUDA.zeros(size(dirs))
+    lblambdas = CUDA.zeros(size(dirs)) 
     ublambdas = CUDA.zeros(size(dirs))
     lmins = CUDA.zeros(size(dirs))
     lmaxs = CUDA.zeros(size(dirs))
     lmin = CUDA.zeros(1, npts)
     lmax = CUDA.zeros(1, npts)
-    newpts = CUDA.zeros(size(pts))
     lws = CUDA.zeros(1, npts)
     oks = CUDA.zeros(Bool, 1, npts)
 
     # extract model data
-    S = CUDA.CUSPARSE.CuSparseMatrixCSR(Float32.(stoichiometry(m)))
-    lbsc, ubsc = bounds(m)
+    S = CUDA.CUSPARSE.CuSparseMatrixCSR(Float32.(COBREXA.stoichiometry(m)))
+    lbsc, ubsc = COBREXA.bounds(m)
     lbs = cu(lbsc)
     ubs = cu(ubsc)
+    # TODO coupling
 
     # pre-generate first batch of the points
     @cuda threads = 256 blocks = 32 TeaRNG.device_fill_rand!(ws, 0)
     pts = (base_points * ws) ./ sum(ws, dims = 1)
 
+    # swap buffer for pts
+    newpts = CUDA.zeros(size(pts))
+
     # run the iterations
-    @time for iter = 1:iters
+    for iter = 1:iters
         # make random point combinations and convert to directions
         @cuda threads = 256 blocks = 32 TeaRNG.device_fill_rand!(ws, iter * 2)
         dirs .= ((base_points * ws) ./ sum(ws, dims = 1)) .- pts
@@ -72,4 +77,4 @@ function sample(m::COBREXA.MetabolicModel, warmup::AbstractMatrix, npts::Int, it
     collect(pts)
 end
 
-end
+end # module AffineHR

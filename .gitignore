@@ -1,4 +1,6 @@
 /docs/build/
+/test/downloaded
+
 Manifest.toml
 
 *.cov

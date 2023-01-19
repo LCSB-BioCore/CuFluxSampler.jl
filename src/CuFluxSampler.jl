@@ -1,8 +1,11 @@
+"""
+$(README)
+"""
 module CuFluxSampler
+using DocStringExtensions
 
 import COBREXA
 import CUDA
-import DocStringExtensions
 import SparseArrays
 
 include("TeaRNG.jl")

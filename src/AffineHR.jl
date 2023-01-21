@@ -24,7 +24,7 @@ function sample(m::COBREXA.MetabolicModel, warmup::AbstractMatrix, npts::Int, it
     base_points = cu(Matrix{Float32}(warmup))
     ws = CUDA.zeros(size(base_points, 2), npts)
     dirs = CUDA.zeros(size(base_points, 1), npts)
-    lblambdas = CUDA.zeros(size(dirs)) 
+    lblambdas = CUDA.zeros(size(dirs))
     ublambdas = CUDA.zeros(size(dirs))
     lmins = CUDA.zeros(size(dirs))
     lmaxs = CUDA.zeros(size(dirs))
@@ -64,7 +64,7 @@ function sample(m::COBREXA.MetabolicModel, warmup::AbstractMatrix, npts::Int, it
         lmin .= maximum(ifelse.(isfinite.(lmins), lmins, -Inf32), dims = 1)
         lmax .= minimum(ifelse.(isfinite.(lmaxs), lmaxs, Inf32), dims = 1)
 
-        # generate random lambdas and compute new points 
+        # generate random lambdas and compute new points
         @cuda threads = 256 blocks = 32 TeaRNG.device_fill_rand!(lws, iter * 2 + 1)
         newpts .= pts + dirs .* (lmin .+ lws .* (lmax .- lmin))
 

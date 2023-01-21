@@ -24,7 +24,7 @@ function sample(m::COBREXA.MetabolicModel, warmup::AbstractMatrix, npts::Int, it
     base_points = cu(Matrix{Float32}(warmup))
     ws = CUDA.zeros(size(base_points, 2), npts)
     dirs = CUDA.zeros(size(base_points, 1), npts)
-    lblambdas = CUDA.zeros(size(dirs)) 
+    lblambdas = CUDA.zeros(size(dirs))
     ublambdas = CUDA.zeros(size(dirs))
     lmins = CUDA.zeros(size(dirs))
     lmaxs = CUDA.zeros(size(dirs))

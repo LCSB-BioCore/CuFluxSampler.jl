@@ -9,12 +9,15 @@ import Random
 """
 $(TYPEDSIGNATURES)
 
-Use the affine-combination hit-and-run algorithm to generate a sample of the
-feasible area of `m` from the `warmup` points supplied as columns in a matrix.
-If you are generating a sample of the optimal solution, it is expected that the
-optimum bound is already present in `m`.
+Use the full-affine-combination hit-and-run algorithm to generate a sample of
+the feasible area of `m` from the `warmup` points supplied as columns in a
+matrix.  If you are generating a sample of the optimal solution, it is expected
+that the optimum bound is already present in `m`.
 
 Returns a matrix of `npts` samples organized in columns.
+
+This algorithm is mostly a toy for comparing the performance. It works, but do
+not use it in production.
 """
 function sample(
     m::COBREXA.MetabolicModel,

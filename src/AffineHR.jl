@@ -26,11 +26,29 @@ end
 $(TYPEDSIGNATURES)
 
 Use the affine-combination hit-and-run algorithm to generate a sample of the
-feasible area of `m` from the `warmup` points supplied as columns in a matrix.
-If you are generating a sample of the optimal solution, it is expected that the
-optimum bound is already present in `m`.
+feasible area of `m` from the set of `start` points supplied as columns in a
+matrix.
 
-Returns a matrix of `npts` samples organized in columns.
+The run directions are generated from random affine combination of `mix_points`
+points (by default 3); matrices `mix_mtx` and `permute_mtx` give fine control
+about the mixing in the process. Preferably, this matrix is very sparse.
+
+`check_stoichiometry` allows to turn on/off the filtering of generated points
+based on whether they are close to the steady state (with tolerance `epsilon`).
+`bound_stoichiometry` additionally computes run bounds based on the
+steady-state region, and uses it to generate better runs. This is useful in
+combination with `direction_noise_max` which may add a small noise to the
+generated run directions, allowing the sampler to discover new directions
+(potentially not obvious from warmup in `start`), but easily explodes without
+limiting the directions.
+
+Additional bounds on run ranges are taken from model coupling constraints, if
+present.
+
+If you are generating a sample of the optimal model solution, it is expected
+that the optimum bound is already present in `m`.
+
+Returns a matrix of the same size as `start`.
 """
 function sample(
     m::COBREXA.MetabolicModel,

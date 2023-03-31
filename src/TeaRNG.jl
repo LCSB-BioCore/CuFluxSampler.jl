@@ -38,22 +38,25 @@ end
 """
 $(TYPEDSIGNATURES)
 
-`Int`-typed overload of [`tea_random`](@ref) provided for convenience.
-"""
-tea_random(x::Int, y::Int) = tea_random(UInt32(x), UInt32(y))
-
-"""
-$(TYPEDSIGNATURES)
-
 CUDA.jl grid-stride kernel that fills the array with random numbers generated
 by [`tea_random`](@ref). `seed` is used as the `stream` ID, global thread index
 in grid is used as the `seq`uence number.
 """
-function device_fill_rand!(arr, seed)
+function device_fill_rand!(arr, seed::UInt32)
     index = threadIdx().x + blockDim().x * (blockIdx().x - 1)
     stride = gridDim().x * blockDim().x
     for i = index:stride:length(arr)
-        arr[i] = Float32(tea_random(seed, i)) / 0x100000000
+        arr[i] = Float32(tea_random(seed, UInt32(i))) / Float32(0x100000000)
+    end
+    return
+end
+
+function device_add_unif_rand!(arr, seed::UInt32, offset::Float32, scale::Float32)
+    index = threadIdx().x + blockDim().x * (blockIdx().x - 1)
+    stride = gridDim().x * blockDim().x
+    for i = index:stride:length(arr)
+        arr[i] +=
+            offset + scale * (Float32(tea_random(seed, UInt32(i))) / Float32(0x100000000))
     end
     return
 end

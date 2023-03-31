@@ -1,4 +1,4 @@
-module AffineHR
+module ACHR
 using ..CUDA
 using ..DocStringExtensions
 using SparseArrays
@@ -6,21 +6,6 @@ using SparseArrays
 import ..COBREXA
 import ..TeaRNG
 import Random
-
-function random_mix_matrix(npts, mix_points)
-    mtx = sparse(
-        Random.rand(1:npts, npts * mix_points),
-        repeat(1:npts, inner = mix_points),
-        Random.rand(npts * mix_points),
-        npts,
-        npts,
-    )
-    mtx ./ sum(mtx, dims = 1)
-end
-
-function random_permute_matrix(npts)
-    sparse(1:npts, Random.randperm(npts), 1.0, npts, npts)
-end
 
 """
 $(TYPEDSIGNATURES)
@@ -41,9 +26,6 @@ function sample(
     direction_noise_max::Union{Nothing,Float32} = nothing,
     epsilon::Float32 = 1.0f-5,
     seed = Random.rand(UInt32),
-    mix_points = 3,
-    mix_mtx = random_mix_matrix(size(start, 2), mix_points),
-    permute_mtx = random_permute_matrix(size(start, 2)),
 )
     # allocate base helper variables
     npts = size(start, 2)
@@ -57,8 +39,6 @@ function sample(
     lmax = CUDA.zeros(1, npts)
     lws = CUDA.zeros(1, npts)
     oks = CUDA.zeros(Bool, 1, npts)
-    mix = CUDA.CUSPARSE.CuSparseMatrixCSR(Float32.(mix_mtx))
-    permute = CUDA.CUSPARSE.CuSparseMatrixCSR(Float32.(permute_mtx))
 
     # extract model data
     S = CUDA.CUSPARSE.CuSparseMatrixCSR(Float32.(COBREXA.stoichiometry(m)))
@@ -101,7 +81,7 @@ function sample(
     # run the iterations
     for iter = 1:iters
 
-        dirs .= (pts * mix) .- pts
+        dirs .= sum(dirs; dims = 1) ./ npts .- pts
 
         if add_noise
             @cuda threads = 256 blocks = 32 TeaRNG.device_add_unif_rand!(
@@ -161,8 +141,7 @@ function sample(
             oks .&= (sum((S * newpts .- b) .^ 2, dims = 1) .< epsilon)
         end
 
-        newpts .= ifelse.(oks, newpts, pts)
-        pts .= newpts * mix
+        pts .= ifelse.(oks, newpts, pts)
     end
 
     collect(pts)

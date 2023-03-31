@@ -7,5 +7,6 @@ using GLPK
 include("data_downloaded.jl")
 
 @testset "CuFluxSampler tests" begin
-    include("AffineHR.jl")
+    include("FullAffHR.jl")
+    include("xHR.jl")
 end

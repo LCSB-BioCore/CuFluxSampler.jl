@@ -1,14 +1,12 @@
 
-@testset "Affine-combination hit-and-run" begin
+@testset "Full-affine-combination hit-and-run" begin
 
-    #m = load_model("work/COBREXA.jl/test/downloaded/e_coli_core.xml")
     m = load_model(df("e_coli_core.xml"))
     warmup = warmup_from_variability(m, GLPK.Optimizer)
 
     sample = CuFluxSampler.AffineHR.sample(
         m,
         warmup,
-        npts = size(warmup, 2),
         iters = 100,
         bound_stoichiometry = true,
         check_stoichiometry = true,

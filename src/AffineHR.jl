@@ -61,7 +61,6 @@ function sample(
     seed = Random.rand(UInt32),
     mix_points = 3,
     mix_mtx = random_mix_matrix(size(start, 2), mix_points),
-    permute_mtx = random_permute_matrix(size(start, 2)),
 )
     # allocate base helper variables
     npts = size(start, 2)
@@ -76,7 +75,6 @@ function sample(
     lws = CUDA.zeros(1, npts)
     oks = CUDA.zeros(Bool, 1, npts)
     mix = CUDA.CUSPARSE.CuSparseMatrixCSR(Float32.(mix_mtx))
-    permute = CUDA.CUSPARSE.CuSparseMatrixCSR(Float32.(permute_mtx))
 
     # extract model data
     S = CUDA.CUSPARSE.CuSparseMatrixCSR(Float32.(COBREXA.stoichiometry(m)))

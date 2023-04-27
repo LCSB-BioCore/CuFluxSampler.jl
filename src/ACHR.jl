@@ -79,7 +79,7 @@ function sample(
     # run the iterations
     for iter = 1:iters
 
-        dirs .= sum(dirs; dims = 1) ./ npts .- pts
+        dirs .= (sum(pts; dims = 2) ./ npts) .- pts
 
         if add_noise
             @cuda threads = 256 blocks = 32 TeaRNG.device_add_unif_rand!(

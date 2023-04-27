@@ -9,8 +9,24 @@ Flux samplers for
 [COBREXA.jl](https://github.com/LCSB-BioCore/COBREXA.jl/),
 accelerated on GPUs via [CUDA.jl](https://github.com/JuliaGPU/CUDA.jl).
 
-The repository contents is work in progress, but the existing code should generally work. The implemented samplers currently include:
+The repository contains the following modules with samplers:
 - Affine-combination-directed Hit&Run (module `CuFluxSampler.AffineHR`)
+- Artificially-Centered Hit&Run (module `CuFluxSampler.ACHR`)
+
+Both modules export a specific function for running the sampler atop COBREXA.jl
+`MetabolicModel` structure, typically called `sample`. See the code comments
+and documentation for details.
+
+Samplers support many options that can be turned on and off, in general:
+- Number of points used for mixing the new run directions in `AffineHR` may be
+  changed by `mix_points` parameter, and you can alternatively supply your own
+  mixing matrix in `mix_mtx`.
+- You can turn on/off the stoichiometry checks with `check_stoichiometry` and
+  tune it with `epsilon` (in both `ACHR` and `AffineHR`)
+- You can add tolerance bounds on stoichiometry in order to expand the feasible
+  region a little to allow randomized runs to succeed; see
+  `check_stoichiometry` and `direction_noise_max` parameters.
+- You can set a seed for the GPU-generated random numbers using `seed`
 
 Running the package code and tests requires a CUDA-capable GPU.
 
